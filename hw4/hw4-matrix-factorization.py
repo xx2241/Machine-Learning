@@ -40,7 +40,7 @@ for i in range(0,10):
 	u[i] = np.random.multivariate_normal(np.zeros(10),np.identity(10),943)
 	v[i] = np.random.multivariate_normal(np.zeros(10),np.identity(10),1682)
 ####training
-for times in range(0,5):
+for times in range(0,10):
 	print('times %d'%times)
 	for iteration in range(0,100):
 		print('iteration %d'%iteration)
@@ -97,7 +97,17 @@ for times in range(0,5):
 	My_Fair_Lady_10index[times] = np.argsort(movie_distance[times])[1:11]
 	My_Fair_Lady_10distance[times] = np.sort(movie_distance[times])[1:11]
 
-
+colorset = ['b','r','c','m','g','y','k','#fe1abf','#4991f1','#9a4aca']
+#timeset = ['first','second','third','forth','fifth','sixth','seventh','eighth','nineth','tenth']
+rounds = np.linspace(2,101,99)
+for k in range(0,10):
+	plt.plot(rounds,L[k,1:],colorset[k])
+plt.ylim([-140000,-80000])
+plt.xlabel('iteration')
+plt.ylabel('objective function')
+#plt.legend(loc = 'lower right')
+#plt.show()
+plt.savefig('1,png')
 
 
 rows = ['objective function','rmse']
@@ -108,17 +118,10 @@ the_table = ax.table(cellText = np.concatenate((L[:,99].reshape((1,10)),rmse[:,9
 	rowLabels = rows,
 	loc = 'center'
 	)
-plt.show()
+#plt.show()
+plt.savefig('2.png')
 
-colorset = ['b','r','c','m','g','y','k','#fe1abf','#4991f1','#9a4aca']
-timeset = ['first','second','third','forth','fifth','sixth','seventh','eighth','nineth','tenth']
-rounds = np.linspace(2,101,99)
-for k in range(0,10):
-	plt.plot(rounds,L[k,1:],colorset[k],label=timeset[k]+' time')
-plt.xlabel('iteration')
-plt.ylabel('objective function')
-plt.legend()
-plt.show()
+
 
 
 
