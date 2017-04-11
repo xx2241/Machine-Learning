@@ -36,11 +36,23 @@ GoodFellas_10distance = np.zeros((10,10))
 My_Fair_Lady_10index = np.zeros((10,10))
 My_Fair_Lady_10movie = np.zeros((10,10))
 My_Fair_Lady_10distance = np.zeros((10,10))
+
+rated = np.zeros((N1,N2))
+rating_Matrix = np.zeros((N1,N2))
+tested = np.zeros((N1,N2))
+testing_Matrix = np.zeros((N1,N2))
+for i in range(0,95000):
+	rated[M_train[i,0]-1,M_train[i,1]-1] = 1
+	rating_Matrix[M_train[i,0]-1,M_train[i,1]-1]=M_train[i,2]
+for i in range(0,5000):
+	tested[M_test[i,0]-1,M_test[i,1]-1]=1
+	testing_Matrix[M_test[i,0]-1,M_test[i,1]-1]=M_test[i,2]
+
 for i in range(0,10):
 	u[i] = np.random.multivariate_normal(np.zeros(10),np.identity(10),943)
 	v[i] = np.random.multivariate_normal(np.zeros(10),np.identity(10),1682)
 ####training
-for times in range(0,10):
+for times in range(0,1):
 	print('times %d'%times)
 	for iteration in range(0,100):
 		print('iteration %d'%iteration)
@@ -59,21 +71,27 @@ for times in range(0,10):
 			sum_mu_j = m_j.dot(u_j)
 			sum_uu_j = u_j.T.dot(u_j)
 			v[times,j-1,:] = np.linalg.inv(sigma_sqaure*np.identity(10)+sum_uu_j).dot(sum_mu_j)
-		u_omega = u[times][M_train[:,0].astype(np.int)-1]
-		v_omega = v[times][M_train[:,1].astype(np.int)-1]
+			
+		#u_omega = u[times][M_train[:,0].astype(np.int)-1]
+		#v_omega = v[times][M_train[:,1].astype(np.int)-1]
 		##corresponding u and v in set omega
-		sigma_muv = np.sum((M_train[:,2]-np.sum(np.multiply(u_omega,v_omega),axis=1))**2)
+		#sigma_muv = np.sum((M_train[:,2]-np.sum(np.multiply(u_omega,v_omega),axis=1))**2)
+		sigma_muv = np.sum(np.sum((rating_Matrix - np.multiply(u[times].dot(v[times].T),rated))**2))
+
 		### np.multiply is element-wise product
 		print(sigma_muv)
-		sigma_u = np.sum(np.multiply(u[times],u[times]))/2
+		#sigma_u = np.sum(np.multiply(u[times],u[times]))/2
+		sigma_u = np.trace((u[times].dot(u[times].T)))
 		print(sigma_u)
-		sigma_v = np.sum(np.multiply(v[times],v[times]))/2
+		#sigma_v = np.sum(np.multiply(v[times],v[times]))/2
+		sigma_v = np.trace((v[times].dot(v[times].T)))
 		print(sigma_v)
 		L[times,iteration] = -sigma_muv/(2*sigma_sqaure) - sigma_u/2 - sigma_v/2
 		print('objective %f'%L[times,iteration])
-		u_test_omega = u[times][M_test[:,0].astype(np.int)-1]
-		v_test_omega = v[times][M_test[:,1].astype(np.int)-1]
-		sigma_muv_test = np.sum((M_test[:,2] - np.sum(np.multiply(u_test_omega,v_test_omega),axis=1))**2)
+		#u_test_omega = u[times][M_test[:,0].astype(np.int)-1]
+		#v_test_omega = v[times][M_test[:,1].astype(np.int)-1]
+		#sigma_muv_test = np.sum((M_test[:,2] - np.sum(np.multiply(u_test_omega,v_test_omega),axis=1))**2)
+		sigma_muv_test = np.sum(np.sum((testing_Matrix-np.multiply(u[times].dot(v[times].T),tested))**2))
 		rmse[times,iteration] = np.sqrt(sigma_muv_test/5000)
 		print('rmse %f'%rmse[times,iteration])
 
@@ -92,10 +110,24 @@ for times in range(0,10):
 		movie_distance[times,j] = np.sqrt(np.sum((v[times,j,:] - GoodFellas)**2))
 	GoodFellas_10index[times] = np.argsort(movie_distance[times])[1:11]
 	GoodFellas_10distance[times] = np.sort(movie_distance[times])[1:11]
+	print(GoodFellas_10distance[times])
+	print(GoodFellas_10index[times])
 	for j in range(0,N2):
 		movie_distance[times,j] = np.sqrt(np.sum((v[times,j,:] - My_Fair_Lady)**2))
 	My_Fair_Lady_10index[times] = np.argsort(movie_distance[times])[1:11]
 	My_Fair_Lady_10distance[times] = np.sort(movie_distance[times])[1:11]
+	print(My_Fair_Lady_10index[times])
+	print(My_Fair_Lady_10distance[times])
+
+np.save('Star_Wars_10distance',Star_Wars_10distance)
+np.save('Star_Wars_10index',Star_Wars_10index)
+np.save('GoodFellas_10index',GoodFellas_10index)
+np.save('GoodFellas_10distance',GoodFellas_10distance)
+np.save('My_Fair_Lady_10index',My_Fair_Lady_10index)
+np.save('My_Fair_Lady_10distance',My_Fair_Lady_10distance)
+np.save('L',L)
+np.save('rmse',rmse)
+
 
 colorset = ['b','r','c','m','g','y','k','#fe1abf','#4991f1','#9a4aca']
 #timeset = ['first','second','third','forth','fifth','sixth','seventh','eighth','nineth','tenth']
@@ -110,7 +142,7 @@ plt.ylabel('objective function')
 plt.savefig('1,png')
 
 
-rows = ['objective function','rmse']
+rows = ['objective','rmse']
 fig,ax = plt.subplots()
 ax.xaxis.set_visible(False)
 ax.yaxis.set_visible(False)
